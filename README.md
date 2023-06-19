@@ -1,73 +1,72 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# WildDuck Installer
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Here you can find an example install script to install WildDuck with Haraka and ZoneMTA. The install script is self contained, you can upload to your server and start it as root. It fetches all required files from Github. After installation you should see exactly the same web interface as in https://webmail.wildduck.email/
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+The install script should work with Ubuntu versions from 16.04 to 20.04 and the server must be blank. Blank meaning that there should be no existing software installed (eg. Apache, MySQL or Postfix). If the server already has something installed, then remove the extra applications before running this script. This also means that you should not run the install script in a VPS that you already use for other stuff.
 
-## Description
+## What does it do?
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This install script installs and configures the following components:
 
-## Installation
+1.  **WildDuck Mail Server** for IMAP and POP3
+2.  **Haraka** with WildDuck plugin for incoming email
+3.  **ZoneMTA** with WildDuck plugin for outbound email
+4.  **WildDuck Webmail** for creating accounts and viewing messages
+5.  **Nginx** to serve the webmail component
+6.  **acme.sh** to manage Let's Encrypt certificates
+7.  **Rspamd** to check messages for spam. Messages detected as spam are routed to Junk Mail folder by default
+8.  **ClamAV** to check messages for viruses. ClamAV is disabled by default, you need to enable it in the Haraka plugins file
+9.  Unprivileged **Deploy** user to easily checkout and publish code changes via git
+10. **ufw** firewall to only allow public ports (so make sure your ssh runs on port 22 or otherwise change the install script first)
 
-```bash
-$ yarn install
+What it does not configure:
+
+1.  **DNS settings**. These you need to handle yourself. See domainname-nameserver.txt file after installation for DNS configuration (includes DKIM)
+
+## Security
+
+All components use TLS/HTTPS with Let's Encrypt certificates by default. Webmail component allows to set up two factor authentication (both TOTP and U2F). If 2FA is enabled then you can also generate application specific passwords for external applications (eg. for the IMAP client) from the Webmail interface as master password can not be used in that case.
+
+## Usage
+
+Run the following commands as root user. Before actually starting _install.sh_ you could inspect it to see what it exactly does.
+
+(run as `root`)
+
+    $ wget -O - https://raw.githubusercontent.com/nodemailer/wildduck/master/setup/get_install.sh | bash
+    $ ./install.sh mydomain.com mail.mydomain.com
+
+Where _mydomain.com_ is the email address domain and _mail.mydomain.com_ is the hostname of current server.
+
+Make sure that used hostname points to current server as the install script tries to fetch an SSL certificate from Let's Encrypt. The MX for email address domain should point to server hostname.
+
+If the installation succeeds then the installer writes DNS configuration to domainname-nameserver.txt file. Set up the provided DNS entries from this file before sending and receiving email.
+
+Next point your browser to https://mydomain.com/ and you should see the WildDuck example webmail app where you can create an email account.
+
+## Config files
+
+Configuration files are installed to the following locations:
+
+1.  WildDuck: /etc/wildduck
+2.  ZoneMTA: /etc/zone-mta
+3.  WildDuck Webmail: /etc/wildduck/wildduck-webmail.toml
+4.  Haraka: /opt/haraka/config
+
+## Log files
+
+All `stdout` and `stderr` is written to service specific log files. For example WildDuck server logs can be found from `/var/log/wildduck-server/wildduck-server.log`.
+
+## Code changes
+
+Install script sets up applications as remote git repositories. You can clone these to your own machine using a special deploy user. If you push changes back to the remote repo, related services are restarted automatically.
+
 ```
-
-## Running the app
-
-```bash
-# development
-$ yarn run start
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
+$ git clone deploy@hostname:/var/opt/wildduck.git
+$ cd wildduck
+$ git checkout master
+$ .... make some changes
+$ git add .
+$ git commit -m "made some changes"
+$ git push origin master -f
 ```
-
-## Test
-
-```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
