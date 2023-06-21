@@ -34,8 +34,11 @@ MONGORELEASE=$CODENAME
   # MONGORELEASE="bionic"
 # fi
 
-wget -qO- https://www.mongodb.org/static/pgp/server-${MONGODB}.asc | apt-key add
-echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu $MONGORELEASE/mongodb-org/$MONGODB multiverse" > /etc/apt/sources.list.d/mongodb-org.list
+#wget -qO- https://www.mongodb.org/static/pgp/server-${MONGODB}.asc | apt-key add
+wget -qO - https://www.mongodb.org/static/pgp/server-${MONGODB}.asc | apt-key add -
+
+#echo "deb [ arch=amd64 ] http://repo.mongodb.org/apt/ubuntu $MONGORELEASE/mongodb-org/$MONGODB multiverse" > /etc/apt/sources.list.d/mongodb-org.list
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/${MONGODB} multiverse" | tee /etc/apt/sources.list.d/mongodb-org-${MONGODB}.list
 
 # rspamd
 wget -O- https://rspamd.com/apt-stable/gpg.key | apt-key add -
