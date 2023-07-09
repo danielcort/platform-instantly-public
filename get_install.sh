@@ -1,6 +1,6 @@
 #! /bin/bash
 
-BRANCH="${1:-wildduck}"
+BRANCH="${1:-main}"
 
 # This script downloads all the installation files.
 BASEURL="https://raw.githubusercontent.com/danielcort/platform-instantly-public/$BRANCH/"
