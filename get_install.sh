@@ -3,7 +3,7 @@
 BRANCH="${1:-wildduck}"
 
 # This script downloads all the installation files.
-BASEURL="https://github.com/danielcort/platform-instantly/$BRANCH/"
+BASEURL="https://raw.githubusercontent.com/danielcort/platform-instantly-public/$BRANCH/"
 
 ## declare an array
 declare -a arr=(
