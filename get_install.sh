@@ -3,7 +3,7 @@
 BRANCH="${1:-main}"
 
 # This script downloads all the installation files.
-BASEURL="https://raw.githubusercontent.com/danielcort/platform-instantly-public/$BRANCH/"
+BASEURL="https://raw.githubusercontent.com/danielcort/platform-instantly-public/main/"
 
 ## declare an array
 declare -a arr=(
